@@ -26,6 +26,8 @@ build/Release
 # Dependency directory
 node_modules
 
+mariana.db
+
 # Optional npm cache directory
 .npm
 
