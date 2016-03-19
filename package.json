@@ -10,6 +10,7 @@
   "license": "WTFPL",
   "dependencies": {
     "express": "^4.13.4",
+    "sequelize": "^3.19.3",
     "sqlite3": "^3.1.1"
   }
 }

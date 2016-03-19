@@ -1,13 +1,23 @@
+'use strict';
+
+var env = process.env.NODE_ENV || 'development';
+var config = require('./config/config.json')[env];
 var express    = require('express');
+
 var app        = express();
 var sqlite3    = require('sqlite3').verbose();
-var db         = new sqlite3.Database('mariana.db');
+
+var db = require('./models');
 
 app.set('json spaces', 2);
 
 var port = process.env.PORT || 8080;
 
 var router = express.Router();
+
+
+
+process.exit(0);
 
 router.get('/', function(req, res) {
     res.json({ message: 'LOL JEWS' });
