@@ -88,7 +88,7 @@ router.route('/find/:str/:page?')
         });
     });
 
-app.use('/api', router);
+app.use('/', router);
 
 app.listen(port);
 console.log('LOLSTINING on port ' + port);
