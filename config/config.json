@@ -1,0 +1,7 @@
+{
+  "development": {
+    "storage": "./mariana.db",
+    "dialect": "sqlite",
+    "port": 4000
+  }
+}
