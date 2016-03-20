@@ -16,44 +16,138 @@ var port = process.env.PORT || 8080;
 var router = express.Router();
 
 
+/* we need to pass a list of attributes to model.find functions because of two reasons:
+   - the DATETIME() sqlite function
+   - the schema is missing the standard columns createdAt and deletedAt */
+var defaultAttributes =  [ 'id', ['DATETIME(data, "unixepoch")', 'data'], 'mensagem', 'numero', 'origem' ];
 
-process.exit(0);
-
-router.get('/', function(req, res) {
-    res.json({ message: 'LOL JEWS' });
+router.get('/', function(request, reply) {
+    reply.json({ message: 'LOL JEWS' });
 });
 
-router.route('/id/:id')
-    .get(function(req, res) {
-        db.get("SELECT id, datetime(data, 'unixepoch') as data, mensagem, origem FROM sms WHERE id = ?", req.params.id, function(err, row) {
-            if (err)
-                res.send(err);
+router.route('/id/:id').get(function(request, reply) {
 
-            res.json(row);
-        });
+    db.SMS.findOne({
+        attributes: defaultAttributes,
+        where: { 'id' : request.params.id }
+    }).then(function(result) {
+
+        reply.json(result);
+
+    }).catch(function(error) {
+
+        throw error;
+        reply.send(error);
+
     });
 
-router.route('/random')
-    .get(function(req, res) {
-        db.get("SELECT id, datetime(data, 'unixepoch') as data, mensagem, origem FROM sms ORDER BY RANDOM() LIMIT 1", function(err, row) {
-            if (err)
-                res.send(err);
+});
 
-            res.json(row);
-        });
+
+router.route('/random').get(function(request, reply) {
+
+    db.SMS.findOne({
+        order: 'RANDOM()',
+        attributes: defaultAttributes,
+        limit: 500
+    }).then(function(result) {
+
+        reply.json(result);
+
+    }).catch(function(error) {
+
+        throw error;
+        reply.send(error);
+
     });
 
-router.route('/latest/:num?')
-    .get(function(req, res) {
-        var num = req.params.num || 15;
-        if (num > 500) num = 500;
-        db.all("SELECT id, datetime(data, 'unixepoch') as data, mensagem, origem FROM sms ORDER BY data DESC LIMIT ?", num, function(err, results) {
-            if (err)
-                res.send(err);
+});
 
-            res.json(results);
-        });
+
+router.route('/latest/:limit?').get(function(request, reply) {
+
+    var limit = (request.params.limit || 15);
+    if (limit > 500) {
+        limit = 500;
+    }
+
+    db.SMS.findAll({
+        attributes: defaultAttributes,
+        limit: limit,
+        order: [ ['data', 'DESC' ] ]
+    }).then(function(result) {
+
+        reply.json(result);
+
+    }).catch(function(error) {
+
+        throw error;
+        reply.send(error);
+
     });
+
+});
+
+
+router.route('/find/:query/:page?').get(function(request, reply) {
+
+    var page = parseInt(request.params.page) || 1;
+    if (page < 1) {
+        page = 1;
+    }
+
+    var query = request.params.query;
+
+    /* a lower limit makes it easier to properly test pagination */
+    var limit = 5;
+    var offset = (page - 1) * limit;
+
+    db.SMS.findAndCountAll({
+        attributes: defaultAttributes,
+        where: {
+            $or: [{
+                mensagem: { $like: '%' + query + '%' }
+            }, {
+                numero: { $like: query }
+            }]
+        },
+        offset: offset,
+        limit: limit,
+        order: [ ['data', 'DESC' ] ]
+    }).then(function(result) {
+
+        var totalPages = Math.ceil(result.count / limit);
+
+        var pagination = {
+            totalRecords: result.count,
+            totalPages: totalPages,
+            currentPage: page,
+            totalResults: result.count
+        }
+
+        if (page < totalPages) {
+            pagination.nextPageUrl = '/api/find/' +  request.params.query + '/' + (page + 1);
+            if (page > 1)  {
+                pagination.prevPageUrl = '/api/find/' +  request.params.query + '/' + (page - 1);
+            }
+        }
+
+        reply.json({
+            pagination: pagination,
+            results: result.rows
+        });
+
+    }).catch(function(error) {
+
+        throw error;
+        reply.send(error);
+
+    });
+
+});
+
+/*
+
 
 router.route('/find/:str/:page?')
     .get(function(req, res) {
@@ -98,6 +192,7 @@ router.route('/find/:str/:page?')
         });
     });
 
+*/
 app.use('/', router);
 
 app.listen(port);
