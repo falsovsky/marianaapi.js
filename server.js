@@ -94,7 +94,7 @@ router.route('/find/:query/:page?').get(function(request, reply) {
     var query = request.params.query;
 
     /* a lower limit makes it easier to properly test pagination */
-    var limit = 5;
+    var limit = 200;
     var offset = (page - 1) * limit;
 
     db.SMS.findAndCountAll({
@@ -117,7 +117,7 @@ router.route('/find/:query/:page?').get(function(request, reply) {
             totalRecords: result.count,
             totalPages: totalPages,
             currentPage: page,
-            totalResults: result.count
+            recordsInPage: result.rows.length
         }
 
         if (page < totalPages) {
