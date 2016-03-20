@@ -2,17 +2,13 @@
 
 var env = process.env.NODE_ENV || 'development';
 var config = require('./config/config.json')[env];
-var express    = require('express');
 
-var app        = express();
-var sqlite3    = require('sqlite3').verbose();
-
+var express = require('express');
 var db = require('./models');
-
-app.set('json spaces', 2);
 
 var port = process.env.PORT || config.port || 8080;
 
+var app = express();
 var router = express.Router();
 
 
@@ -146,54 +142,10 @@ router.route('/find/:query/:page?').get(function(request, reply) {
 
 });
 
-/*
+app.set('json spaces', 2);
 
-
-router.route('/find/:str/:page?')
-    .get(function(req, res) {
-        var page = parseInt(req.params.page) || 1;
-        var str = '%' + req.params.str + '%';
-        var perpage = 200;
-        db.get("SELECT COUNT(1) as total FROM sms WHERE mensagem LIKE ? OR numero LIKE ?", str, str, function(err, row) {
-            if (err)
-                res.send(err);
-
-            var total = parseInt(row.total);
-            var totalpages = Math.ceil(total / perpage);
-
-            if (totalpages > 1 && page > totalpages) page = totalpages;
-
-            var start = 0;
-            if (page > 1) {
-                start = (page - 1) * perpage;
-            }
-
-            db.all("SELECT id, datetime(data, 'unixepoch') as data, mensagem, origem FROM sms WHERE mensagem LIKE ? OR numero LIKE ? ORDER BY data DESC LIMIT ?,?", str, str, start, perpage, function(err, results) {
-                if (err)
-                    res.send(err);
-
-                var next = null;
-                if (page < totalpages) {
-                    var nextpage = page + 1;
-                    next = '/api/find/' +  req.params.str + '/' + nextpage;
-                }
-
-                var out = [{
-                    'totalrecords': total,
-                    'totalpages': totalpages,
-                    'page': page,
-                    'pagerecords': results.length,
-                    'next' : next,
-                    'records' : results
-                }]
-
-                res.json(out);
-            });
-        });
-    });
-
-*/
 app.use('/', router);
 
 app.listen(port);
+
 console.log('LOLSTINING on port ' + port);
