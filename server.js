@@ -44,8 +44,7 @@ router.route('/random').get(function(request, reply) {
 
     db.SMS.findOne({
         order: 'RANDOM()',
-        attributes: defaultAttributes,
-        limit: 500
+        attributes: defaultAttributes
     }).then(function(result) {
 
         reply.json(result);
