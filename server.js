@@ -11,7 +11,7 @@ var db = require('./models');
 
 app.set('json spaces', 2);
 
-var port = process.env.PORT || 8080;
+var port = process.env.PORT || config.port || 8080;
 
 var router = express.Router();
 
